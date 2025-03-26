@@ -261,4 +261,11 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
+# Image files
+best_size/
+contours/
+cropped/
+final/
+preprocessed/
+
 # End of https://www.toptal.com/developers/gitignore/api/pycharm+all,python
