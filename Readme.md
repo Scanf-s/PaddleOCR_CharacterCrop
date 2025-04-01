@@ -38,14 +38,14 @@ pip install -r requirements.txt
 To process an input image and extract Korean characters:
 
 2. Arguments
--i: Path to the input image (default: ./inputs/image.png)
+-i: Path to the input image (default: ./inputs/image.png)  
 -o: Path to the output directory for extracted characters (default: ./final/)
 
 3. Output
-Cropped Images: Saved in the ./cropped/ directory.
-Projection Images: Saved in the ./projection/ directory.
-Filtered Characters: Saved in the ./best_size/ directory.
-Final Characters: Saved in the ./final/ directory with filenames corresponding to the recognized characters.
+Cropped Images: Saved in the ./cropped/ directory.  
+Projection Images: Saved in the ./projection/ directory.  
+Filtered Characters: Saved in the ./best_size/ directory.  
+Final Characters: Saved in the ./final/ directory with filenames corresponding to the recognized characters.  
 
 ---
 
