@@ -95,5 +95,5 @@ To test the program with sample images:
 1. Place your test images in the ./inputs/ directory.
 2. Run the program
 ```bash
-python run.py
+python run.py -i INPUT_IMAGE_PATH -o OUTPUT_DIR_PATH
 ```
