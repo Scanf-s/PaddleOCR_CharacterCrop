@@ -262,6 +262,7 @@ poetry.toml
 pyrightconfig.json
 
 # Image files
+paddle_ocr_result.png
 best_size/
 contours/
 cropped/
