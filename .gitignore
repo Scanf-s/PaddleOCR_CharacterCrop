@@ -267,6 +267,6 @@ contours/
 cropped/
 final/
 inputs/
-preprocessed/
+projection/
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm+all,python
