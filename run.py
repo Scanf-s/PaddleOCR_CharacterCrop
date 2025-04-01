@@ -56,7 +56,9 @@ ocr: PaddleOCR = PaddleOCR(lang="korean")
 
 def crop(bounding_boxes: np.ndarray) -> list:
     """
-    Crop the image using the bounding boxes.
+    PaddleOCR로부터 얻은 bounding box를 바탕으로 이미지를 자르는 함수
+    bounding box는 4개의 꼭짓점 좌표로 이루어져 있으며,
+    이 좌표를 바탕으로 이미지를 자른다.
     """
     cropped_images: list = []
     offset = 5
@@ -75,7 +77,7 @@ def crop(bounding_boxes: np.ndarray) -> list:
         # rect = [ 좌상, 우상, 우하, 좌하 ]
 
         # 네 꼭짓점 좌표를 numpy array로 변환
-        # 이때, 검출 영역이 너무 Fit하게 되어있어서 +5을 해준다
+        # 이때, 검출 영역이 너무 Fit하게 되어있어서 +offset 을 해준다
         image_height, image_width = image.shape[:2]
         image_height -= 1
         image_width -= 1
@@ -103,13 +105,14 @@ def crop(bounding_boxes: np.ndarray) -> list:
         )
 
         # 네 좌표를 바탕으로 이미지의 너비 및 높이 계산
-        widthA = np.sqrt((pts[2][0] - pts[3][0])**2 + (pts[2][1] - pts[3][1])**2)
-        widthB = np.sqrt((pts[1][0] - pts[0][0])**2 + (pts[1][1] - pts[0][1])**2)
-        maxWidth = max(int(widthA), int(widthB))
+        # 최대 너비 및 높이를 선택해야 잘리는 부분을 최소화할 수 있다
+        widthA = np.sqrt((pts[2][0] - pts[3][0])**2 + (pts[2][1] - pts[3][1])**2) # 좌하단 - 우하단
+        widthB = np.sqrt((pts[1][0] - pts[0][0])**2 + (pts[1][1] - pts[0][1])**2) # 좌상단 - 우상단
+        maxWidth = max(int(widthA), int(widthB)) # 두 위아래 변 중에 최대 너비 선택해서 crop 영역으로 선택
 
-        heightA = np.sqrt((pts[1][0] - pts[2][0])**2 + (pts[1][1] - pts[2][1])**2)
-        heightB = np.sqrt((pts[0][0] - pts[3][0])**2 + (pts[0][1] - pts[3][1])**2)
-        maxHeight = max(int(heightA), int(heightB))
+        heightA = np.sqrt((pts[1][0] - pts[2][0])**2 + (pts[1][1] - pts[2][1])**2) # 좌상단 - 우상단
+        heightB = np.sqrt((pts[0][0] - pts[3][0])**2 + (pts[0][1] - pts[3][1])**2) # 좌하단 - 우하단
+        maxHeight = max(int(heightA), int(heightB)) # 두 좌우 변 중에 최대 높이 선택해서 crop 영역으로 선택
 
         # 출력될 이미지 좌표 설정
         dst = np.array(
@@ -126,14 +129,6 @@ def crop(bounding_boxes: np.ndarray) -> list:
         M = cv2.getPerspectiveTransform(pts, dst)
         warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
 
-        # # 음영 제거 -> 모폴로지 연산
-        # kernel_size = 150
-        # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
-
-        # background = cv2.morphologyEx(warped, cv2.MORPH_OPEN, kernel)
-        # gray_minus_bg = cv2.subtract(warped, background)
-        # normed = cv2.normalize(gray_minus_bg, None, 0, 255, cv2.NORM_MINMAX)
-
         cropped_images.append(warped)
         cv2.imwrite(f"./cropped/croped_{idx}.png", warped)
 
@@ -141,6 +136,10 @@ def crop(bounding_boxes: np.ndarray) -> list:
     return cropped_images
 
 def projection(cropped_images: list) -> list:
+    """
+    이미지의 각 열마다 픽셀 합계를 구하여 글자 사이의 경계를 판단하고,
+    각 글자를 분리하여 이미지를 저장하는 핵심 함수
+    """
     result_images: list = []
     offset = 5
     minimum_width = 5
@@ -168,6 +167,11 @@ def projection(cropped_images: list) -> list:
     return result_images
 
 def best_size(projection_images: list) -> list:
+    """
+    글자 이미지 자체가 너무 작은 경우, 좋은 input이 될 수 없기 때문에
+    크기가 적당한 이미지만을 추출하는 함수
+    이때, 크기가 적당하다는 기준은 height와 width가 모두 20px 이상인 경우로 잡았음
+    """
     best_size_images = []
     size_threshold = 20 # 최소 크기
     for idx, image in enumerate(projection_images):
@@ -186,6 +190,11 @@ def best_size(projection_images: list) -> list:
     return best_size_images
 
 def get_characters(best_size_images: list, output_path: str) -> None:
+    """
+    최종적으로 OCR을 통해 한글 글자 1문자를 인식하고,
+    인식된 글자와 함께 이미지를 저장하는 함수
+    이때, 인식된 글자가 한글이 아닌 경우는 제외함
+    """
     result_images = []
     for idx, image in enumerate(best_size_images):
         result = ocr.ocr(image, det=False, rec=True, cls=False)
@@ -207,6 +216,7 @@ def get_characters(best_size_images: list, output_path: str) -> None:
     for image, text in result_images:
         cv2.imwrite(output_path + f"{text}.png", image)
     
+
 if __name__ == "__main__":
     args = parser.parse_args()
     input_image_path: str = args.i if args.i else "./inputs/image.png"
@@ -260,3 +270,6 @@ if __name__ == "__main__":
     
     logger.info("Completed!")
     logger.info("#" * 50)
+    #####################################################################
+    #####################################################################
+    
