@@ -23,6 +23,8 @@ import os
 import shutil
 import re
 
+# export CUDA_VISIBLE_DEVICES='0'
+
 # Set logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
