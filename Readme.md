@@ -1,4 +1,4 @@
-# Korean Letter Crop with PaddleOCR and OpenCV
+# Korean Single Character Crop with PaddleOCR and OpenCV
 
 ## 📖 Overview
 This project extracts individual Korean characters from images using **PaddleOCR** and **OpenCV**. It processes images by detecting bounding boxes, cropping characters, and refining them for further use, such as Optical Character Recognition (OCR) or dataset preparation.
